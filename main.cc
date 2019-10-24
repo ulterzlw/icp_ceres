@@ -46,28 +46,36 @@ int main(int argc, char **argv) {
   source.emplace_back(Eigen::Vector3d(1, 0, 0));
   source.emplace_back(Eigen::Vector3d(0, 1, 0));
 
-  Sophus::SE3d tf(Sophus::SO3d::exp(Eigen::Vector3d(0, 0, 1)), Eigen::Vector3d(1, 0, 0));
+  Sophus::SE3d
+      tf(Sophus::SO3d::exp(Eigen::Vector3d(0, 0, 1)), Eigen::Vector3d(1, 0, 0));
   std::cout << "truth:\n" << tf.matrix() << std::endl;
   std::vector<Eigen::Vector3d> target;
   for (int i = 0; i < source.size(); ++i) {
     target.emplace_back(tf * source.at(i));
   }
 
-  Eigen::Matrix<double, 6, 1> tf_calculated_parameter(Eigen::Matrix<double,6,1>::Random());
-  std::cout << "initial:\n" << Sophus::SE3d::exp(tf_calculated_parameter).matrix()<<std::endl;
+  Eigen::Matrix<double, 6, 1> tf_calculated_parameter(Eigen::Matrix<double,
+                                                                    6,
+                                                                    1>::Random());
+  std::cout << "initial:\n"
+            << Sophus::SE3d::exp(tf_calculated_parameter).matrix() << std::endl;
 
   ceres::Problem problem;
 
   for (int i = 0; i < source.size(); ++i) {
-    ceres::CostFunction *cost_function = new AnalyticalErrorTerm(source.at(i), target.at(i));
-    problem.AddResidualBlock(cost_function, NULL, tf_calculated_parameter.data());
+    ceres::CostFunction
+        *cost_function = new AnalyticalErrorTerm(source.at(i), target.at(i));
+    problem.AddResidualBlock(cost_function,
+                             NULL,
+                             tf_calculated_parameter.data());
   }
   ceres::Solver::Options options;
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
 
   std::cout << summary.BriefReport() << std::endl;
-  std::cout << "result:\n" << Sophus::SE3d::exp(tf_calculated_parameter).matrix();
+  std::cout << "result:\n"
+            << Sophus::SE3d::exp(tf_calculated_parameter).matrix();
 
   return 0;
 
